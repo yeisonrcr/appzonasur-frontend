@@ -1,0 +1,23 @@
+{
+  "name": "zonasur-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/cliente",
+    "apps/admin"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/cliente",
+    "dev:cliente": "npm run dev --workspace=apps/cliente",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "build:cliente": "npm run build --workspace=apps/cliente",
+    "build:admin": "npm run build --workspace=apps/admin",
+    "install:all": "npm install && npm install --workspace=apps/cliente && npm install --workspace=apps/admin"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.19.3"
+  }
+}
