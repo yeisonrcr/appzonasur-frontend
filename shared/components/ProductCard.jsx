@@ -1,21 +1,8 @@
 // ProductCard.jsx
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import OptimizedImage from './OptimizedImage'
 
 function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
-  const [isAdding, setIsAdding] = useState(false)
-
-  const handleQuickAdd = async (e) => {
-    e.stopPropagation()
-    e.preventDefault()
-    
-    if (!isOpen || product.stock_quantity === 0) return
-    
-    setIsAdding(true)
-    await onAddToCart(product, 1, [])
-    setTimeout(() => setIsAdding(false), 500)
-  }
-
   const isOutOfStock = !product.is_unlimited_stock && product.stock_quantity === 0
   const isLowStock = !product.is_unlimited_stock && product.stock_quantity < 10
 
@@ -25,6 +12,8 @@ function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
       className="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-neutral-100 hover:border-primary-200 active:scale-[0.98]"
     >
       <div className="flex items-center gap-3">
+        
+        {/* Imagen */}
         <div className="flex-shrink-0">
           {product.images && product.images.length > 0 ? (
             <OptimizedImage
@@ -39,12 +28,11 @@ function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
           )}
         </div>
 
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 mb-1">
-            <h3 className="font-bold text-neutral-900 text-sm flex-1 line-clamp-1">
-              {product.name}
-            </h3>
-          </div>
+          <h3 className="font-bold text-neutral-900 text-sm line-clamp-1 mb-1">
+            {product.name}
+          </h3>
           
           {product.description && (
             <p className="text-xs text-neutral-600 line-clamp-2 mb-2 leading-relaxed">
@@ -52,7 +40,7 @@ function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
             </p>
           )}
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-base font-bold text-primary-600">
               ₡{product.price.toLocaleString()}
             </span>
@@ -71,6 +59,7 @@ function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
           </div>
         </div>
 
+        {/* Botón agregar */}
         <div className="flex-shrink-0">
           <button
             onClick={(e) => {
@@ -89,6 +78,7 @@ function ProductCard({ product, onAddToCart, onViewDetails, isOpen }) {
             </svg>
           </button>
         </div>
+
       </div>
     </div>
   )
