@@ -1,3 +1,4 @@
+// OptimizedImage.jsx
 import { useState, useEffect, useRef } from 'react'
 
 const imageCache = new Map()
@@ -8,7 +9,7 @@ function OptimizedImage({
   alt, 
   className = '', 
   fallbackIcon = '🍽️',
-  threshold = 200,
+  threshold = 400,
   ...props 
 }) {
   const [isLoaded, setIsLoaded] = useState(false)

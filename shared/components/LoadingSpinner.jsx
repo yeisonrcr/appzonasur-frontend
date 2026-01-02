@@ -1,3 +1,4 @@
+// LoadingSpinner.jsx
 function LoadingSpinner({ size = 'md' }) {
   const sizes = {
     sm: 'h-4 w-4',

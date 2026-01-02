@@ -1,3 +1,4 @@
+// LoginPage.jsx
 import { useState } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@shared/context/AuthContext'
@@ -62,7 +63,6 @@ function LoginPage() {
 
       const data = await response.json()
 
-      // Obtener perfil del cliente
       const profileResponse = await fetch('/api/v1/client/profile', {
         headers: {
           'Authorization': `Bearer ${data.access_token}`
@@ -75,37 +75,29 @@ function LoginPage() {
 
       const clientData = await profileResponse.json()
 
-      // ✅ ESPERAR a que el login se complete
       await login(data.access_token, clientData, 'client')
       
-      // Verificar que se guardó en localStorage
       const savedToken = localStorage.getItem('token')
       if (!savedToken) {
         throw new Error('Error guardando sesión')
       }
       showSuccess(`¡Bienvenido ${clientData.name}!`)
       
-      // ✅ DETERMINAR DESTINO
-      // 1. Si viene de una ruta protegida, ir ahí
-      // 2. Si hay última tienda visitada, ir al menú de esa tienda
-      // 3. Sino, ir a perfil
       const lastSlug = localStorage.getItem('last_visited_slug')
       let destination = from
       
       if (from === '/perfil' && lastSlug) {
-        // Si viene del login normal y hay tienda visitada, ir al menú
         destination = `/${lastSlug}`
       } else {
         console.log('📍 Navegando a:', destination)
       }
       
-      // ✅ ESPERAR un momento para que React actualice el contexto
       setTimeout(() => {
         navigate(destination, { replace: true })
       }, 100)
       
     } catch (err) {
-      console.error('❌ Error de login:', err)
+      console.error('⌧ Error de login:', err)
       setErrors({ general: err.message })
       showError(err.message)
       setLoading(false)
@@ -114,31 +106,28 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
         
-        {/* Header Limpio */}
-        <div className="bg-white px-8 pt-8 pb-6 text-center border-b border-gray-100">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-50 text-primary-600 rounded-full mb-4">
-            <span className="text-3xl">🍽️</span>
+        <div className="bg-white px-6 pt-6 pb-4 text-center border-b border-gray-100">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-50 text-primary-600 rounded-full mb-3">
+            <span className="text-2xl">🍽️</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          <h1 className="text-xl font-bold text-gray-900 mb-1">
             Iniciar Sesión
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-gray-500">
             Ingresa a tu cuenta para ordenar
           </p>
         </div>
 
-        {/* Form Container */}
-        <div className="p-8 pt-6">
+        <div className="p-6 pt-4">
           
-          {/* Selector de tipo de autenticación */}
-          <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+          <div className="flex bg-gray-100 p-0.5 rounded-lg mb-4">
             <button
               type="button"
               onClick={() => setAuthType('EMAIL')}
               disabled={loading}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                 authType === 'EMAIL'
                   ? 'bg-white text-primary-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -150,7 +139,7 @@ function LoginPage() {
               type="button"
               onClick={() => setAuthType('PHONE')}
               disabled={loading}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
                 authType === 'PHONE'
                   ? 'bg-white text-primary-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -160,7 +149,7 @@ function LoginPage() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {authType === 'EMAIL' && (
               <div>
                 <Input
@@ -174,7 +163,7 @@ function LoginPage() {
                   className="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-xs text-red-600 font-medium">{errors.email}</p>
+                  <p className="mt-1 text-[10px] text-red-600 font-medium">{errors.email}</p>
                 )}
               </div>
             )}
@@ -192,7 +181,7 @@ function LoginPage() {
                   className="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
                 />
                 {errors.phone && (
-                  <p className="mt-1 text-xs text-red-600 font-medium">{errors.phone}</p>
+                  <p className="mt-1 text-[10px] text-red-600 font-medium">{errors.phone}</p>
                 )}
               </div>
             )}
@@ -209,22 +198,21 @@ function LoginPage() {
                 className="bg-gray-50 border-gray-200 focus:bg-white transition-colors"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600 font-medium">{errors.password}</p>
+                <p className="mt-1 text-[10px] text-red-600 font-medium">{errors.password}</p>
               )}
             </div>
 
-            {/* Error General */}
             {errors.general && (
-              <div className="bg-red-50 border border-red-100 rounded-lg p-3 flex items-start gap-2">
-                <span className="text-red-500">⚠️</span>
-                <p className="text-sm text-red-600">{errors.general}</p>
+              <div className="bg-red-50 border border-red-100 rounded-lg p-2.5 flex items-start gap-1.5">
+                <span className="text-red-500 text-sm">⚠️</span>
+                <p className="text-xs text-red-600">{errors.general}</p>
               </div>
             )}
 
             <Button 
               type="submit" 
-              className="w-full shadow-md hover:shadow-lg transition-all" 
-              size="lg" 
+              className="w-full mt-2 shadow-md hover:shadow-lg transition-all" 
+              size="md" 
               loading={loading}
               disabled={loading}
             >
@@ -232,9 +220,9 @@ function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p className="text-sm text-gray-500">
-              ¿No tienes una cuenta?{' '}
+          <div className="mt-5 pt-4 border-t border-gray-100 text-center">
+            <p className="text-xs text-gray-500">
+              ¿No tienes cuenta?{' '}
               <Link 
                 to="/register" 
                 className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"

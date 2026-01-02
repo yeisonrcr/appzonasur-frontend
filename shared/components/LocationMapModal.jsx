@@ -1,5 +1,5 @@
+// LocationMapModal.jsx
 import { useState, useCallback, useEffect } from 'react'
-// ✅ CORRECCIÓN 1: Importamos MarkerF en lugar de Marker
 import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api'
 import Button from './Button'
 
@@ -45,7 +45,6 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
   const [markerPosition, setMarkerPosition] = useState(defaultCenter)
   const [isGettingLocation, setIsGettingLocation] = useState(false)
 
-  // Obtener ubicación GPS al abrir
   useEffect(() => {
     if (!isOpen || !isLoaded) return
 
@@ -115,9 +114,9 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
   if (!isLoaded) {
     return isOpen ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-        <div className="bg-white rounded-2xl p-8 shadow-strong">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando mapa...</p>
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mx-auto mb-3"></div>
+          <p className="text-gray-600 text-sm">Cargando mapa...</p>
         </div>
       </div>
     ) : null
@@ -126,13 +125,13 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
   if (loadError) {
     return isOpen ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-        <div className="bg-white rounded-2xl p-8 shadow-strong max-w-md">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Error al cargar el mapa</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white rounded-xl p-6 shadow-lg max-w-md">
+          <div className="text-red-500 text-4xl mb-3">⚠️</div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Error al cargar el mapa</h3>
+          <p className="text-gray-600 mb-4 text-sm">
             No se pudo cargar Google Maps. Verifica tu conexión.
           </p>
-          <Button onClick={onClose} variant="outline" className="w-full">
+          <Button onClick={onClose} variant="outline" className="w-full" size="sm">
             Cerrar
           </Button>
         </div>
@@ -144,36 +143,33 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
 
   return (
     <>
-      {/* Overlay */}
       <div 
         className="fixed inset-0 bg-black/70 z-50" 
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div 
-          className="bg-white rounded-2xl shadow-strong w-full max-w-2xl flex flex-col pointer-events-auto"
+          className="bg-white rounded-xl shadow-lg w-full max-w-2xl flex flex-col pointer-events-auto"
           style={{ height: '80vh', maxHeight: '600px' }}
         >
           
-          {/* Header */}
-          <div className="p-4 border-b border-neutral-200 flex-shrink-0">
+          <div className="p-3 border-b border-neutral-200 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-neutral-900">
+              <h2 className="text-base font-bold text-neutral-900">
                 📍 Confirma tu ubicación
               </h2>
               
               <button
                 onClick={handleGetLocationAgain}
                 disabled={isGettingLocation}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                 title="Obtener mi ubicación actual"
               >
                 {isGettingLocation ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                 ) : (
-                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -181,7 +177,7 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
               </button>
             </div>
             
-            <p className="text-sm text-neutral-600 mt-1">
+            <p className="text-xs text-neutral-600 mt-1">
               {isGettingLocation 
                 ? 'Obteniendo tu ubicación GPS...'
                 : 'Arrastra el marcador o haz clic en el mapa'
@@ -189,7 +185,6 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
             </p>
           </div>
 
-          {/* Mapa */}
           <div className="flex-1 relative" style={{ minHeight: '0' }}>
             <GoogleMap
               mapContainerStyle={containerStyle}
@@ -198,7 +193,6 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
               options={mapOptions}
               onClick={onMapClick}
             >
-              {/* ✅ CORRECCIÓN 2: Usamos MarkerF */}
               <MarkerF
                 position={markerPosition}
                 draggable={true}
@@ -215,25 +209,26 @@ function LocationMapModal({ isOpen, initialPosition, onConfirm, onClose }) {
               />
             </GoogleMap>
 
-            <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-medium p-3 z-10 pointer-events-none">
-              <p className="text-sm text-gray-800 leading-relaxed">
+            <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg shadow-md p-2.5 z-10 pointer-events-none">
+              <p className="text-xs text-gray-800 leading-relaxed">
                 <strong>💡 Arrastra el punto rojo</strong> para marcar tu ubicación exacta de entrega
               </p>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-neutral-200 flex gap-3 flex-shrink-0">
+          <div className="p-3 border-t border-neutral-200 flex gap-2 flex-shrink-0">
             <Button
               variant="outline"
               onClick={onClose}
               className="flex-1"
+              size="sm"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirm}
               className="flex-1 font-bold"
+              size="sm"
             >
               ✓ Confirmar Ubicación
             </Button>

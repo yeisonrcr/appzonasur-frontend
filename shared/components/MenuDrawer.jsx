@@ -1,3 +1,4 @@
+// MenuDrawer.jsx
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@shared/context/AuthContext'
 
@@ -44,25 +45,25 @@ function MenuDrawer({ isOpen, onClose }) {
             onClick={onClose}
           />
           
-          <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-strong z-50 flex flex-col animate-slide-right">
+          <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-lg z-50 flex flex-col animate-slide-right">
             
-            <div className="pt-8 pb-6 px-6 border-b border-neutral-200">
+            <div className="pt-6 pb-4 px-5 border-b border-neutral-200">
               {isAuthenticated ? (
                 <div className="flex flex-col gap-1">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-3">
-                    <span className="text-xl font-bold text-primary-600">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-2">
+                    <span className="text-lg font-bold text-primary-600">
                       {client?.name?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
-                  <h2 className="text-2xl font-bold text-neutral-900 leading-tight">
+                  <h2 className="text-xl font-bold text-neutral-900 leading-tight">
                     Hola, {client?.name?.split(' ')[0]}
                   </h2>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   <button
                     onClick={() => handleNavigation('/login')}
-                    className="bg-neutral-900 text-white py-3 px-6 rounded-full font-bold text-sm hover:bg-neutral-800 transition-all active:scale-95"
+                    className="bg-neutral-900 text-white py-2.5 px-5 rounded-full font-bold text-sm hover:bg-neutral-800 transition-all active:scale-95"
                   >
                     Iniciar sesión / Registrarse
                   </button>
@@ -73,16 +74,16 @@ function MenuDrawer({ isOpen, onClose }) {
             <div className="flex-1 overflow-y-auto px-4 py-2">
               
               {lastSlug && (
-                <div className="mb-4">
+                <div className="mb-3">
                    <button
                     onClick={() => handleNavigation(`/${lastSlug}`)}
-                    className={`w-full text-left p-4 rounded-xl border group transition-all ${
+                    className={`w-full text-left p-3 rounded-lg border group transition-all ${
                       currentSlug === lastSlug
                         ? 'bg-primary-100 border-primary-200 ring-2 ring-primary-500'
                         : 'bg-primary-50 border-primary-100 hover:bg-primary-100'
                     }`}
                   >
-                    <span className={`text-base font-bold ${
+                    <span className={`text-sm font-bold ${
                       currentSlug === lastSlug
                         ? 'text-primary-800'
                         : 'text-primary-700 group-hover:text-primary-800'
@@ -94,7 +95,7 @@ function MenuDrawer({ isOpen, onClose }) {
                 </div>
               )}
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5">
                 {isAuthenticated && (
                   <>
                     <MenuItem 
@@ -109,7 +110,7 @@ function MenuDrawer({ isOpen, onClose }) {
                       onClick={() => handleNavigation('/mis-pedidos')} 
                       active={location.pathname === '/mis-pedidos'} 
                     />
-                    <div className="my-2"></div>
+                    <div className="my-1.5"></div>
                   </>
                 )}
 
@@ -126,17 +127,17 @@ function MenuDrawer({ isOpen, onClose }) {
               </div>
             </div>
 
-            <div className="p-6 border-t border-neutral-200 bg-white">
+            <div className="p-5 border-t border-neutral-200 bg-white">
               {isAuthenticated && (
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
+                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
                 >
                   Cerrar sesión
                 </button>
               )}
               
-              <div className="mt-6 flex flex-col gap-1">
+              <div className="mt-5 flex flex-col gap-0.5">
                 <span className="text-xs font-bold text-neutral-900">Zona Sur</span>
                 <span className="text-[10px] text-neutral-400">Costa Rica</span>
               </div>
@@ -153,15 +154,15 @@ function MenuItem({ text, icon, onClick, active = false }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-xl border transition-all ${
+      className={`w-full text-left p-3 rounded-lg border transition-all ${
         active 
           ? 'bg-neutral-100 border-neutral-200 ring-2 ring-neutral-400' 
           : 'bg-white border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300'
       }`}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-2xl">{icon}</span>
-        <span className={`text-base font-semibold ${
+      <div className="flex items-center gap-2.5">
+        <span className="text-xl">{icon}</span>
+        <span className={`text-sm font-semibold ${
           active ? 'text-neutral-900' : 'text-neutral-700'
         }`}>
           {text}
