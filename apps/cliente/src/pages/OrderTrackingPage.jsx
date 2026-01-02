@@ -1,3 +1,4 @@
+// OrderTrackingPage.jsx
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTenant } from '@shared/context/TenantContext'
@@ -60,7 +61,7 @@ function OrderTrackingPage() {
       })
 
       socket.on('disconnect', () => {
-        console.log('❌ Socket desconectado')
+        console.log('⌧ Socket desconectado')
         setSocketConnected(false)
       })
 
@@ -80,7 +81,7 @@ function OrderTrackingPage() {
             READY: '✅ ¡Tu pedido está listo!',
             ON_THE_WAY: '🛵 Tu pedido va en camino',
             DELIVERED: '😋 ¡Buen provecho!',
-            CANCELLED: '❌ Pedido cancelado'
+            CANCELLED: '⌧ Pedido cancelado'
           }
           
           showInfo(statusMessages[data.new_status] || 'Estado actualizado')
@@ -163,7 +164,7 @@ function OrderTrackingPage() {
         progress: 0, 
         color: 'bg-red-500',
         bgColor: 'bg-red-50', 
-        icon: '❌' 
+        icon: '⌧' 
       }
     }
     return config[status] || config.PENDING
@@ -176,7 +177,7 @@ function OrderTrackingPage() {
   )
   
   if (!order) return (
-    <div className="p-10 text-center text-neutral-500 text-base">
+    <div className="p-8 text-center text-neutral-500 text-sm">
       Pedido no encontrado
     </div>
   )
@@ -185,77 +186,75 @@ function OrderTrackingPage() {
   const isActive = !['DELIVERED', 'CANCELLED'].includes(order.status)
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-20">
-      {/* ✅ Header sticky SIN top-14, ahora top-0 */}
-      <div className="bg-white border-b border-neutral-200 sticky top-0 z-10 shadow-soft">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
+    <div className="min-h-screen bg-neutral-50 pb-16">
+      <div className="bg-white border-b border-neutral-200 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate(`/${slug}`)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-all active:scale-95"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-all active:scale-95"
             aria-label="Volver al menú"
           >
-            <svg className="w-6 h-6 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-xl font-bold text-neutral-900">Menú</h1>
+          <h1 className="text-base font-bold text-neutral-900">Menú</h1>
         </div>
       </div>
 
-      {/* ✅ Contenido CON padding-top para separar del header */}
-      <div className="max-w-md mx-auto px-6 pt-6 pb-6">
+      <div className="max-w-md mx-auto px-4 pt-4 pb-4">
         
-        <div className="text-center mb-8 animate-fade-in">
-          <div className={`w-28 h-28 mx-auto ${statusConfig.bgColor} rounded-full flex items-center justify-center mb-5 relative transition-all duration-500 shadow-medium`}>
+        <div className="text-center mb-6 animate-fade-in">
+          <div className={`w-20 h-20 mx-auto ${statusConfig.bgColor} rounded-full flex items-center justify-center mb-4 relative transition-all duration-500 shadow-md`}>
             {isActive && (
               <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-current animate-spin opacity-20" style={{ color: statusConfig.color.replace('bg-', '') }}></div>
             )}
-            <span className="text-5xl transform transition-transform hover:scale-110 cursor-default">
+            <span className="text-4xl transform transition-transform hover:scale-110 cursor-default">
               {statusConfig.icon}
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-neutral-900 mb-2 transition-all">
+          <h2 className="text-xl font-bold text-neutral-900 mb-1.5 transition-all">
             {statusConfig.label}
           </h2>
-          <p className="text-base text-neutral-600 px-4">
+          <p className="text-sm text-neutral-600 px-4">
             {statusConfig.desc}
           </p>
         </div>
 
-        <div className="w-full bg-neutral-200 rounded-full h-3 mb-8 overflow-hidden shadow-soft">
+        <div className="w-full bg-neutral-200 rounded-full h-2 mb-6 overflow-hidden shadow-sm">
           <div 
             className={`h-full transition-all duration-1000 ease-out ${statusConfig.color}`} 
             style={{ width: `${statusConfig.progress}%` }}
           />
         </div>
 
-        <div className="border-2 border-neutral-200 rounded-2xl shadow-medium overflow-hidden bg-white mb-6">
-          <div className="bg-neutral-50 px-5 py-4 border-b border-neutral-200 flex justify-between items-center">
-            <span className="font-bold text-neutral-900 text-base">Pedido #{order.id}</span>
-            <span className="text-sm text-neutral-500">
+        <div className="border-2 border-neutral-200 rounded-xl shadow-md overflow-hidden bg-white mb-4">
+          <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-200 flex justify-between items-center">
+            <span className="font-bold text-neutral-900 text-sm">Pedido #{order.id}</span>
+            <span className="text-xs text-neutral-500">
               {new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
             </span>
           </div>
 
-          <div className="p-5 space-y-3">
+          <div className="p-4 space-y-2">
             {order.items.map((item, i) => (
-              <div key={i} className="flex justify-between text-base py-2 border-b border-neutral-100 last:border-0">
+              <div key={i} className="flex justify-between text-sm py-1.5 border-b border-neutral-100 last:border-0">
                 <span className="text-neutral-700">
                   <span className="font-bold text-neutral-900">{item.quantity}x</span> {item.product_name}
                   {item.modifiers_json && item.modifiers_json.length > 0 && (
-                    <span className="block text-sm text-neutral-400 mt-1">
+                    <span className="block text-xs text-neutral-400 mt-0.5">
                       {item.modifiers_json.map(m => m.name || m.option_name).join(', ')}
                     </span>
                   )}
                 </span>
-                <span className="font-semibold text-neutral-900 ml-3">
+                <span className="font-semibold text-neutral-900 ml-2">
                   ₡{(item.unit_price * item.quantity).toLocaleString()}
                 </span>
               </div>
             ))}
             
-            <div className="border-t-2 border-neutral-200 mt-4 pt-4">
-              <div className="flex justify-between font-bold text-xl">
+            <div className="border-t-2 border-neutral-200 mt-3 pt-3">
+              <div className="flex justify-between font-bold text-base">
                 <span className="text-neutral-700">Total</span>
                 <span className="text-primary-600">₡{order.total.toLocaleString()}</span>
               </div>
@@ -264,17 +263,17 @@ function OrderTrackingPage() {
         </div>
 
         {socketConnected && (
-          <div className="mb-6 flex items-center justify-center gap-2 text-sm text-green-600 bg-green-50 py-2 px-4 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-subtle"></div>
+          <div className="mb-4 flex items-center justify-center gap-2 text-xs text-green-600 bg-green-50 py-2 px-3 rounded-full">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse-subtle"></div>
             <span className="font-medium">Actualizaciones en tiempo real activas</span>
           </div>
         )}
 
         {(order.status === 'DELIVERED' || order.status === 'CANCELLED' || order.status === 'READY') && (
-          <div className="mt-6 animate-fade-in">
+          <div className="mt-4 animate-fade-in">
             <Button 
-              className="w-full font-bold text-lg shadow-medium" 
-              size="lg" 
+              className="w-full font-bold text-sm shadow-md" 
+              size="md" 
               onClick={() => navigate(`/${slug}`)}
             >
               {order.status === 'DELIVERED' ? 'Hacer otro pedido' : 'Volver al menú'}
