@@ -1,3 +1,11 @@
+// ============================================
+// API.JS - ZONASUR FRONTEND
+// ============================================
+// ✅ Corregido para manejar correctamente:
+//    - Dominios de plataforma (zonasur.app, www.zonasur.app, etc)
+//    - Dominios custom de tenants (mirestaurante.com)
+//    - Desarrollo local (localhost)
+
 const BASE_URL = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/api/v1`
   : '/api/v1'
@@ -8,13 +16,41 @@ export function setTenantIdentifier(identifier) {
   currentTenantIdentifier = identifier
 }
 
-// ✅ NUEVA FUNCIÓN - Detectar si es dominio (tiene puntos) o slug
+// ============================================
+// ✅ FUNCIÓN CORREGIDA - Detectar tipo de identifier
+// ============================================
+// Retorna TRUE si el identifier es un dominio custom de tenant
+// Retorna FALSE si es un slug (tienda-yadira) o dominio de plataforma
 function isCustomDomain(identifier) {
   if (!identifier) return false
-  // Un dominio tiene puntos (ej: www.zonasur.app, mirestaurante.com)
-  // Un slug NO tiene puntos (ej: tienda-yadira, pizzeria-roma)
+  
+  // Lista de dominios que pertenecen a la plataforma ZonaSur
+  // Estos NO son dominios custom de tenants
+  const platformDomains = [
+    'zonasur.app',
+    'www.zonasur.app',
+    'admin.zonasur.app',
+    'cliente.zonasur.app',
+  ]
+  
+  // Si el identifier está en la lista de dominios de plataforma, NO es custom
+  if (platformDomains.includes(identifier)) {
+    return false
+  }
+  
+  // Si contiene vercel.app o localhost, NO es custom
+  if (identifier.includes('vercel.app') || identifier.includes('localhost')) {
+    return false
+  }
+  
+  // Un dominio custom tiene puntos (ej: mirestaurante.com)
+  // Un slug NO tiene puntos (ej: tienda-yadira)
   return identifier.includes('.')
 }
+
+// ============================================
+// HELPERS
+// ============================================
 
 async function handleResponse(response) {
   if (!response.ok) {
@@ -31,6 +67,7 @@ function getHeaders(includeAuth = false) {
     'Content-Type': 'application/json'
   }
   
+  // Enviar el identifier como header para que el backend lo use
   if (currentTenantIdentifier) {
     headers['X-Tenant-Slug'] = currentTenantIdentifier
   }
@@ -45,25 +82,39 @@ function getHeaders(includeAuth = false) {
   return headers
 }
 
-// ✅ FUNCIÓN CORREGIDA
+// ============================================
+// FUNCIONES DE API - TENANT
+// ============================================
+
 export async function getTenantInfo(identifier) {
   setTenantIdentifier(identifier)
   
-  // Si es un dominio custom (tiene puntos), NO ponerlo en el path
-  // Si es un slug (sin puntos), puede ir en el path como fallback
   let url
+  
   if (isCustomDomain(identifier)) {
-    // Dominio custom: Solo usar header, NO en path
+    // ============================================
+    // CASO 1: Dominio custom (mirestaurante.com)
+    // ============================================
+    // Solo usar header, NO poner el dominio en el path
+    // El backend buscará por custom_domain
+    console.log('🌐 API: Dominio custom detectado:', identifier)
     url = `${BASE_URL}/info`
   } else {
-    // Slug: Intentar con path primero (backward compatibility)
+    // ============================================
+    // CASO 2: Slug (tienda-yadira)
+    // ============================================
+    // Poner el slug en el path (backward compatibility)
+    console.log('🌐 API: Slug detectado:', identifier)
     url = `${BASE_URL}/${identifier}/info`
   }
+  
+  console.log('🌐 API: Llamando a:', url)
   
   let response = await fetch(url, { headers: getHeaders() })
   
   // Si falla con slug en path, intentar solo con header
   if (!response.ok && !isCustomDomain(identifier)) {
+    console.log('🌐 API: Reintentando con header solamente')
     url = `${BASE_URL}/info`
     response = await fetch(url, { headers: getHeaders() })
   }
@@ -71,9 +122,12 @@ export async function getTenantInfo(identifier) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
+// ============================================
+// FUNCIONES DE API - CATEGORÍAS Y PRODUCTOS
+// ============================================
+
 export async function getCategories(slug) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug)) 
     ? `${BASE_URL}/${slug}/categories` 
     : `${BASE_URL}/categories`
@@ -81,9 +135,8 @@ export async function getCategories(slug) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
 export async function getProducts(slug) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug)) 
     ? `${BASE_URL}/${slug}/products` 
     : `${BASE_URL}/products`
@@ -91,9 +144,8 @@ export async function getProducts(slug) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
 export async function getProduct(slug, productId) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/products/${productId}` 
     : `${BASE_URL}/products/${productId}`
@@ -108,9 +160,12 @@ export async function getProductModifiers(productId) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
+// ============================================
+// FUNCIONES DE API - CUPONES
+// ============================================
+
 export async function validateCoupon(slug, code, subtotal) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/coupons/validate` 
     : `${BASE_URL}/coupons/validate`
@@ -122,9 +177,12 @@ export async function validateCoupon(slug, code, subtotal) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
+// ============================================
+// FUNCIONES DE API - PEDIDOS
+// ============================================
+
 export async function createOrder(slug, orderData) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders` 
     : `${BASE_URL}/orders`
@@ -136,9 +194,8 @@ export async function createOrder(slug, orderData) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
 export async function getOrder(slug, publicId) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders/${publicId}` 
     : `${BASE_URL}/orders/${publicId}`
@@ -146,9 +203,8 @@ export async function getOrder(slug, publicId) {
   return handleResponse(response)
 }
 
-// ✅ FUNCIÓN CORREGIDA
 export async function getActiveOrder(slug, tableId = null) {
-  // Si es dominio, no usar en path
+  // Si es dominio custom, no usar en path
   const baseUrl = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders/active` 
     : `${BASE_URL}/orders/active`
@@ -159,6 +215,10 @@ export async function getActiveOrder(slug, tableId = null) {
   })
   return handleResponse(response)
 }
+
+// ============================================
+// FUNCIONES DE API - AUTENTICACIÓN CLIENTE
+// ============================================
 
 export async function registerClient(data) {
   const response = await fetch(`${BASE_URL}/client/register`, {
@@ -200,6 +260,10 @@ export async function logoutClient() {
   return handleResponse(response)
 }
 
+// ============================================
+// FUNCIONES DE API - AUTENTICACIÓN BUSINESS
+// ============================================
+
 export async function logoutBusiness() {
   const response = await fetch(`${BASE_URL}/business/logout`, {
     method: 'POST',
@@ -207,6 +271,10 @@ export async function logoutBusiness() {
   })
   return handleResponse(response)
 }
+
+// ============================================
+// OBJETO API GENÉRICO
+// ============================================
 
 const api = {
   async get(url, includeAuth = false) {

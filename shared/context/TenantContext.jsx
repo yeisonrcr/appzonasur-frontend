@@ -7,6 +7,25 @@ const TenantContext = createContext()
 const CACHE_DURATION = 5 * 60 * 1000
 const tenantCache = {}
 
+// ============================================
+// ✅ FUNCIÓN HELPER - Detectar si es dominio de plataforma
+// ============================================
+// Dominios que pertenecen a ZonaSur (NO son dominios custom de tenants)
+function isPlatformDomain(hostname) {
+  const platformDomains = [
+    'zonasur.app',
+    'www.zonasur.app',
+    'admin.zonasur.app',
+    'cliente.zonasur.app',
+    'localhost',
+  ]
+  
+  // Verificar si el hostname está en la lista o es un preview de Vercel
+  return platformDomains.includes(hostname) || 
+         hostname.includes('vercel.app') ||
+         hostname.includes('localhost')
+}
+
 export function TenantProvider({ children }) {
   const { slug } = useParams()
   const location = useLocation()
@@ -15,41 +34,68 @@ export function TenantProvider({ children }) {
   const [error, setError] = useState(null)
   const [tenantIdentifier, setTenantIdentifier] = useState(null)
 
-  // ✅ DETECTAR TENANT IDENTIFIER
-  // - Custom domain (ej: www.zonasur.app, mirestaurante.com) → usa hostname
-  // - Slug (ej: tienda-yadira) → usa el parámetro de ruta
+  // ============================================
+  // ✅ DETECTAR TENANT IDENTIFIER (CORREGIDO)
+  // ============================================
   useEffect(() => {
     const hostname = window.location.hostname
     
-    // Detectar si es dominio custom (cualquier dominio que no sea el nuestro)
-    const isCustomDomain = hostname !== 'zonasur.app' && 
-                           hostname !== 'localhost' && 
-                           !hostname.includes('vercel.app')
+    // ✅ CORREGIDO: Usar función helper para detectar dominio de plataforma
+    // Esto ahora incluye www.zonasur.app como dominio de plataforma
+    const isCustomDomain = !isPlatformDomain(hostname)
     
-
-
-                           
+    console.log('🔍 TenantContext - Detectando tenant:', {
+      hostname,
+      isPlatformDomain: isPlatformDomain(hostname),
+      isCustomDomain,
+      slugFromPath: slug
+    })
+    
     if (isCustomDomain) {
-      // Custom domain: usar hostname completo (ej: www.zonasur.app)
-      // Esto incluye el subdominio "www" si existe
+      // ============================================
+      // CASO 1: Dominio custom de un tenant
+      // ============================================
+      // Ejemplo: mirestaurante.com → usar hostname como identifier
+      console.log('📌 Usando dominio custom:', hostname)
       setTenantIdentifier(hostname)
+      
     } else if (slug) {
-      // Slug-based: usar el slug de la ruta (ej: /tienda-yadira)
+      // ============================================
+      // CASO 2: Dominio de plataforma con slug en path
+      // ============================================
+      // Ejemplos:
+      //   - zonasur.app/tienda-yadira → slug = "tienda-yadira"
+      //   - www.zonasur.app/tienda-yadira → slug = "tienda-yadira"
+      //   - localhost:5174/tienda-yadira → slug = "tienda-yadira"
+      console.log('📌 Usando slug del path:', slug)
       setTenantIdentifier(slug)
+      
     } else {
+      // ============================================
+      // CASO 3: Sin tenant identificable
+      // ============================================
+      // Ejemplo: zonasur.app (sin slug) → mostrar página de inicio
+      console.log('📌 Sin tenant identifier')
       setTenantIdentifier(null)
     }
   }, [slug, location])
 
+  // ============================================
+  // CARGAR DATOS DEL TENANT
+  // ============================================
   useEffect(() => {
     async function loadTenant() {
-      if (!tenantIdentifier) return
+      if (!tenantIdentifier) {
+        setLoading(false)
+        return
+      }
       
       const now = Date.now()
       const cached = tenantCache[tenantIdentifier]
       
       // Usar caché si existe y es válido (< 5 minutos)
       if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        console.log('📦 Usando tenant desde caché:', tenantIdentifier)
         setTenant(cached.data)
         setLoading(false)
         if (cached.data.name) {
@@ -63,10 +109,14 @@ export function TenantProvider({ children }) {
         setLoading(true)
         setError(null)
         
+        console.log('🌐 Cargando tenant desde API:', tenantIdentifier)
+        
         // ✅ Llamar a la API con el identifier
         // La función getTenantInfo detectará si es dominio o slug
         // y construirá la URL correctamente
         const data = await getTenantInfo(tenantIdentifier)
+        
+        console.log('✅ Tenant cargado:', data.name, data.slug)
         
         // Guardar en caché
         tenantCache[tenantIdentifier] = {
@@ -82,8 +132,8 @@ export function TenantProvider({ children }) {
           localStorage.setItem('last_visited_name', data.name)
         }
       } catch (err) {
+        console.error('❌ Error cargando tenant:', err)
         setError(err.message)
-        console.error('Error cargando tenant:', err)
       } finally {
         setLoading(false)
       }
@@ -117,6 +167,7 @@ export function TenantProvider({ children }) {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Negocio no encontrado</h1>
+          <p className="text-gray-500 text-sm">{error}</p>
         </div>
       </div>
     )

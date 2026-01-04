@@ -305,7 +305,6 @@ function CheckoutPage() {
             <div className="border-t border-neutral-100 pt-3 pb-2">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-xs font-bold text-neutral-900">Propina</h3>
-                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">100% para el staff</span>
               </div>
               <div className="grid grid-cols-5 gap-1.5 mb-2">
                 {[0, 10, 15, 20].map(p => (
