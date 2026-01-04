@@ -5,6 +5,7 @@ import { useAuth } from '@shared/context/AuthContext'
 import Button from '@shared/components/Button'
 import Input from '@shared/components/Input'
 import { showSuccess, showError } from '@shared/services/alerts'
+import { loginClient, getClientProfile } from '@shared/services/api'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -40,40 +41,14 @@ function LoginPage() {
         })
       }
 
-      
-      const response = await fetch('/api/v1/client/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      // ✅ CORREGIDO: Usar función de api.js que tiene la URL correcta
+      const data = await loginClient(payload)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        
-        if (response.status === 429) {
-          throw new Error('Demasiados intentos. Por favor espera unos minutos.')
-        } else if (response.status === 401) {
-          throw new Error('Credenciales incorrectas. Verifica tu email y contraseña.')
-        } else if (response.status === 400) {
-          throw new Error(errorData.detail || 'Datos inválidos')
-        } else {
-          throw new Error(errorData.detail || 'Error al iniciar sesión')
-        }
-      }
+      // Guardar token temporalmente para obtener perfil
+      localStorage.setItem('token', data.access_token)
 
-      const data = await response.json()
-
-      const profileResponse = await fetch('/api/v1/client/profile', {
-        headers: {
-          'Authorization': `Bearer ${data.access_token}`
-        }
-      })
-
-      if (!profileResponse.ok) {
-        throw new Error('Error obteniendo perfil')
-      }
-
-      const clientData = await profileResponse.json()
+      // ✅ CORREGIDO: Usar función de api.js
+      const clientData = await getClientProfile()
 
       await login(data.access_token, clientData, 'client')
       
@@ -88,8 +63,6 @@ function LoginPage() {
       
       if (from === '/perfil' && lastSlug) {
         destination = `/${lastSlug}`
-      } else {
-        console.log('📍 Navegando a:', destination)
       }
       
       setTimeout(() => {
@@ -97,9 +70,18 @@ function LoginPage() {
       }, 100)
       
     } catch (err) {
-      console.error('⌧ Error de login:', err)
-      setErrors({ general: err.message })
-      showError(err.message)
+      console.error('❌ Error de login:', err)
+      
+      let errorMessage = err.message
+      if (err.message.includes('401') || err.message.includes('Credenciales')) {
+        errorMessage = 'Credenciales incorrectas. Verifica tu email y contraseña.'
+      } else if (err.message.includes('429')) {
+        errorMessage = 'Demasiados intentos. Por favor espera unos minutos.'
+      }
+      
+      setErrors({ general: errorMessage })
+      showError(errorMessage)
+    } finally {
       setLoading(false)
     }
   }
