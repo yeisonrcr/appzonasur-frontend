@@ -15,18 +15,26 @@ export function TenantProvider({ children }) {
   const [error, setError] = useState(null)
   const [tenantIdentifier, setTenantIdentifier] = useState(null)
 
-  // ✅ DETECTAR TENANT IDENTIFIER (slug o custom domain)
+  // ✅ DETECTAR TENANT IDENTIFIER
+  // - Custom domain (ej: www.zonasur.app, mirestaurante.com) → usa hostname
+  // - Slug (ej: tienda-yadira) → usa el parámetro de ruta
   useEffect(() => {
     const hostname = window.location.hostname
+    
+    // Detectar si es dominio custom (cualquier dominio que no sea el nuestro)
     const isCustomDomain = hostname !== 'zonasur.app' && 
                            hostname !== 'localhost' && 
                            !hostname.includes('vercel.app')
     
+
+
+                           
     if (isCustomDomain) {
-      // Custom domain
+      // Custom domain: usar hostname completo (ej: www.zonasur.app)
+      // Esto incluye el subdominio "www" si existe
       setTenantIdentifier(hostname)
     } else if (slug) {
-      // Slug-based
+      // Slug-based: usar el slug de la ruta (ej: /tienda-yadira)
       setTenantIdentifier(slug)
     } else {
       setTenantIdentifier(null)
@@ -40,6 +48,7 @@ export function TenantProvider({ children }) {
       const now = Date.now()
       const cached = tenantCache[tenantIdentifier]
       
+      // Usar caché si existe y es válido (< 5 minutos)
       if (cached && (now - cached.timestamp) < CACHE_DURATION) {
         setTenant(cached.data)
         setLoading(false)
@@ -53,9 +62,13 @@ export function TenantProvider({ children }) {
       try {
         setLoading(true)
         setError(null)
-        // ✅ PASAR TENANT IDENTIFIER
+        
+        // ✅ Llamar a la API con el identifier
+        // La función getTenantInfo detectará si es dominio o slug
+        // y construirá la URL correctamente
         const data = await getTenantInfo(tenantIdentifier)
         
+        // Guardar en caché
         tenantCache[tenantIdentifier] = {
           data,
           timestamp: now
@@ -63,6 +76,7 @@ export function TenantProvider({ children }) {
         
         setTenant(data)
         
+        // Guardar en localStorage para "último visitado"
         localStorage.setItem('last_visited_slug', data.slug)
         if (data.name) {
           localStorage.setItem('last_visited_name', data.name)

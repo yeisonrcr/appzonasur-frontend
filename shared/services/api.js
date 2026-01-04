@@ -8,6 +8,14 @@ export function setTenantIdentifier(identifier) {
   currentTenantIdentifier = identifier
 }
 
+// ✅ NUEVA FUNCIÓN - Detectar si es dominio (tiene puntos) o slug
+function isCustomDomain(identifier) {
+  if (!identifier) return false
+  // Un dominio tiene puntos (ej: www.zonasur.app, mirestaurante.com)
+  // Un slug NO tiene puntos (ej: tienda-yadira, pizzeria-roma)
+  return identifier.includes('.')
+}
+
 async function handleResponse(response) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ 
@@ -37,13 +45,25 @@ function getHeaders(includeAuth = false) {
   return headers
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getTenantInfo(identifier) {
   setTenantIdentifier(identifier)
   
-  let url = `${BASE_URL}/${identifier}/info`
+  // Si es un dominio custom (tiene puntos), NO ponerlo en el path
+  // Si es un slug (sin puntos), puede ir en el path como fallback
+  let url
+  if (isCustomDomain(identifier)) {
+    // Dominio custom: Solo usar header, NO en path
+    url = `${BASE_URL}/info`
+  } else {
+    // Slug: Intentar con path primero (backward compatibility)
+    url = `${BASE_URL}/${identifier}/info`
+  }
+  
   let response = await fetch(url, { headers: getHeaders() })
   
-  if (!response.ok) {
+  // Si falla con slug en path, intentar solo con header
+  if (!response.ok && !isCustomDomain(identifier)) {
     url = `${BASE_URL}/info`
     response = await fetch(url, { headers: getHeaders() })
   }
@@ -51,20 +71,30 @@ export async function getTenantInfo(identifier) {
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getCategories(slug) {
-  const url = slug ? `${BASE_URL}/${slug}/categories` : `${BASE_URL}/categories`
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug)) 
+    ? `${BASE_URL}/${slug}/categories` 
+    : `${BASE_URL}/categories`
   const response = await fetch(url, { headers: getHeaders() })
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getProducts(slug) {
-  const url = slug ? `${BASE_URL}/${slug}/products` : `${BASE_URL}/products`
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug)) 
+    ? `${BASE_URL}/${slug}/products` 
+    : `${BASE_URL}/products`
   const response = await fetch(url, { headers: getHeaders() })
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getProduct(slug, productId) {
-  const url = slug 
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/products/${productId}` 
     : `${BASE_URL}/products/${productId}`
   const response = await fetch(url, { headers: getHeaders() })
@@ -78,8 +108,10 @@ export async function getProductModifiers(productId) {
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function validateCoupon(slug, code, subtotal) {
-  const url = slug 
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/coupons/validate` 
     : `${BASE_URL}/coupons/validate`
   const response = await fetch(url, {
@@ -90,8 +122,10 @@ export async function validateCoupon(slug, code, subtotal) {
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function createOrder(slug, orderData) {
-  const url = slug 
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders` 
     : `${BASE_URL}/orders`
   const response = await fetch(url, {
@@ -102,16 +136,20 @@ export async function createOrder(slug, orderData) {
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getOrder(slug, publicId) {
-  const url = slug 
+  // Si es dominio, no usar en path
+  const url = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders/${publicId}` 
     : `${BASE_URL}/orders/${publicId}`
   const response = await fetch(url, { headers: getHeaders() })
   return handleResponse(response)
 }
 
+// ✅ FUNCIÓN CORREGIDA
 export async function getActiveOrder(slug, tableId = null) {
-  const baseUrl = slug 
+  // Si es dominio, no usar en path
+  const baseUrl = (slug && !isCustomDomain(slug))
     ? `${BASE_URL}/${slug}/orders/active` 
     : `${BASE_URL}/orders/active`
   const url = tableId ? `${baseUrl}?table_id=${tableId}` : baseUrl
